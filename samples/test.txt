@@ -1,3 +1,0 @@
-CSI:
-This is my test file.
-It has only 3 lines of random text!

@@ -1,9 +1,19 @@
 [package]
 name = "csi"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2024"
 
+[lib]
+# crate-type = [
+#     "rlib",        # Rust static library
+#     "dylib",       # Rust dynamic library
+#     "staticlib",   # C static library
+#     "cdylib"       # C dynamic library
+# ]
+
 [dependencies]
+toml = "1.0.1"
+serde = {version = "1.0.0", features = ["derive"]}
 
 [lints.rust]
 # unused = "allow"

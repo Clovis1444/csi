@@ -1,0 +1,12 @@
+[general]
+program_name = "CSI"
+program_desc = "This is the description of my cool program!"
+
+[[pages]]
+page_type = "Welcome"
+title = "Cool title"
+desc = "Cool desc"
+[[pages]]
+page_type = "License"
+title = "Lame title"
+desc = "Lame desc"
