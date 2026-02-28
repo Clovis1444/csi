@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+// TODO(clovis): integrate var_name in the future pages
 #[derive(Deserialize, Serialize, Debug)]
 pub enum InstallerPage {
     Custom(CustomPage),

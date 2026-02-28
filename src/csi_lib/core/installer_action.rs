@@ -9,12 +9,12 @@ pub enum InstallerAction {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct CopyInstallerAction {
-    input: String,
-    output: String,
+    var_name: String,
+    output_path: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DownloadInstallerAction {
-    input: String,
-    output: String,
+    var_name: String,
+    output_path: String,
 }
