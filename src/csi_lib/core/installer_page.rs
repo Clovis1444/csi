@@ -1,37 +1,25 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Default, Debug)]
-pub struct Installer {
-    pub general: InstallerGeneral,
-    #[serde(alias = "page")]
-    pub pages: Vec<InstallerPage>,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct InstallerGeneral {
-    program_name: String,
-    program_desc: String,
-}
-impl Default for InstallerGeneral {
-    fn default() -> Self {
-        Self {
-            program_name: String::from("Program Name"),
-            program_desc: String::from("Program Description")
-        }
-    }
-}
-impl InstallerGeneral {
-    pub fn program_name(&self) -> &str { &self.program_name }
-    pub fn set_program_name(&mut self, val: String) { self.program_name = val }
-    pub fn program_desc(&self) -> &str { &self.program_desc }
-    pub fn set_program_desc(&mut self, val: String) { self.program_desc = val }
-
-}
-
 #[derive(Deserialize, Serialize, Debug)]
 pub enum InstallerPage {
+    Custom(CustomPage),
     Welcome(WelcomePage),
     License(LicensePage),
+}
+impl InstallerPage {
+    // TODO(clovis): add PageAction struct or trait
+    pub fn has_action(&self) -> bool {
+        match self {
+            // InstallerPage::Welcome(_val) => { return true; }
+            _ => { return false; }
+        }
+    }
+    // Returns true if action was executed successfully
+    pub fn exec_action(&self) -> bool {
+        if !self.has_action() { return false; }
+
+        return true;
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -106,4 +94,23 @@ impl LicensePage{
 
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct CustomPage {
+    title: Option<String>,
+    desc: Option<String>,
+}
+impl Default for CustomPage {
+    fn default() -> Self {
+        Self {
+            title: None,
+            desc: None,
+        }
+    }
+}
+impl CustomPage {
+    pub fn title(&self) -> &Option<String> { &self.title }
+    pub fn set_title(&mut self, val: Option<String>) { self.title = val }
+    pub fn desc(&self) -> &Option<String> { &self.desc }
+    pub fn set_desc(&mut self, val: Option<String>) { self.desc = val }
+}
 /////////////////////////////////////////////////////////////////////////////////
