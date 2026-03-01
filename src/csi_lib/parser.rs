@@ -6,6 +6,8 @@ pub fn installer_from_file(f_path: &str) -> Result<core::Installer, Box<dyn std:
 
     let installer = toml::from_str::<core::Installer>(&f_content)?;
 
+    installer.validate()?;
+
     return Ok(installer);
 }
 

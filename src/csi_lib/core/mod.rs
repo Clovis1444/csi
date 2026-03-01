@@ -4,21 +4,62 @@ pub use installer_page::*;
 pub use installer_action::*;
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Deserialize, Serialize, Default, Debug)]
 pub struct Installer {
-    pub general: InstallerGeneral,
+    general: InstallerGeneral,
     #[serde(alias = "page")]
-    pub pages: Vec<InstallerPage>,
+    pages: Vec<InstallerPage>,
     // Default values for variables
-    vars: Option<HashMap<String, String>>,
-    #[serde(alias = "action")]
-    actions: Option<Vec<InstallerAction>>,
+    #[serde(default)]
+    vars: HashMap<String, String>,
+    #[serde(alias = "action", default)]
+    actions: Vec<InstallerAction>,
+    #[serde(default)]
+    log: bool,
 }
 impl Installer {
     pub fn is_valid(&self) -> bool {
-        todo!()
+        let result = match self.validate() {
+            Ok(_) => { true },
+            Err(_) => { false },
+        };
+
+        return result;
+    }
+    pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let mut used_vars: HashSet<String> = HashSet::new();
+        // TODO(clovis): do the same thing with pages
+        // Populate used_vars
+        for action in &self.actions {
+            for var in action.vars() {
+                used_vars.insert(var);
+            }
+        }
+
+        let mut unused_vars: HashSet<String> = HashSet::new();
+        // Populate unused_vars
+        for var in self.vars.keys() {
+            if !used_vars.contains(var) { unused_vars.insert(var.clone()); }
+        }
+
+        // TODO(clovis): create logging functions in utils.rs
+        if self.log {
+            println!("[WARNING] Variables {:?} declared but not used.", unused_vars);
+        }
+
+        let mut undeclared_vars: HashSet<String> = used_vars.clone();
+        // Populate undeclared_vars
+        undeclared_vars.retain(|var| { !self.vars.contains_key(var) });
+
+        // Return Error
+        if !undeclared_vars.is_empty() {
+            let err_str = format!("Error: variables {:?} used but not declared!", undeclared_vars);
+            return Err(err_str.into());
+        }
+
+        return Ok(());
     }
 }
 

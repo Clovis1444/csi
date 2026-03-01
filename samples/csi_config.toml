@@ -1,7 +1,9 @@
+# log = true
 [general]
 program_name = "CSI"
 program_desc = "This is the description of my cool program!"
 source_dir = "~/my_program_src/"
+
 
 [[pages]]
 Welcome = { title = "Welcome title", desc = "Welcome to my cool program installer."}
@@ -14,10 +16,16 @@ License.file_path = "samples/LICENSE"
 [vars]
 var1 = "some path"
 var2 = "false"
+unused_var = "1"
+cond1 = "false"
+cond2 = "true"
 
 [[action]]
-Copy.var_name = "var1"
-Copy.output_path = "~/.config/"
+type = "Copy"
+var_source = "var1"
+output_path = "~/.config/"
 [[action]]
-Download.var_name = "var2"
-Download.output_path = "~/.local/share/csi/"
+type = "Download"
+var_source = "var2"
+var_conds = [ "cond1", "cond2" ]
+output_path = "~/.local/share/csi/"
