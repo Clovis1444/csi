@@ -1,4 +1,4 @@
-use eframe::egui::{Context, Ui, TopBottomPanel, CentralPanel, Layout, Align};
+use eframe::egui::{self, Align, CentralPanel, Context, Layout, TopBottomPanel, Ui, Image};
 
 #[derive(Default, Debug)]
 pub struct PageFrame{
@@ -22,7 +22,23 @@ impl PageFrame {
         let mut response = PageFrameResponse::default();
 
         TopBottomPanel::top("Title Panel").show(ctx, |ui| {
-            ui.heading("Page Title");
+            ui.columns_const(|[col_1, col_2]| {
+                let col_1_layout = Layout::left_to_right(Align::Center);
+                col_1.with_layout(col_1_layout, |ui| {
+                    ui.heading("Page Title");
+                });
+
+                let col_2_layout = Layout::right_to_left(Align::Center);
+                col_2.with_layout(col_2_layout, |ui| {
+                    let lang_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/lang_icon32.png"));
+                    let lang_icon = Image::new(lang_icon_src).fit_to_original_size(1.0);
+
+                    ui.menu_image_button(lang_icon, |ui| {
+                        let _ = ui.button("English").clicked();
+                        let _ = ui.button("Русский").clicked();
+                    });
+                });
+            });
         });
 
         TopBottomPanel::bottom("Bottom Panel").show(ctx, |ui| {

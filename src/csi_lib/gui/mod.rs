@@ -30,11 +30,14 @@ struct InstallerGui {
 }
 
 impl InstallerGui {
-    fn new(_cc: &eframe::CreationContext<'_>) -> Self {
+    fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // Customize egui here with cc.egui_ctx.set_fonts and cc.egui_ctx.set_visuals.
         // Restore app state using cc.storage (requires the "persistence" feature).
         // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
         // for e.g. egui::PaintCallback.
+
+        egui_extras::install_image_loaders(&cc.egui_ctx);
+
         Self {page_index: 7, page_count: 13}
     }
 
