@@ -27,6 +27,7 @@ pub fn hello_egui() {
 struct InstallerGui {
     page_index: i32,
     page_count: i32,
+    lang: page_frame::Language,
 }
 
 impl InstallerGui {
@@ -38,7 +39,7 @@ impl InstallerGui {
 
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
-        Self {page_index: 7, page_count: 13}
+        Self {page_index: 7, page_count: 13, ..Default::default()}
     }
 
     fn next_page(&mut self) {
@@ -51,13 +52,18 @@ impl InstallerGui {
 
 impl eframe::App for InstallerGui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let response = page_frame::PageFrame::new(self.page_index, self.page_count).show(ctx, |ui| {
+        let pf = page_frame::PageFrame::new(
+            self.page_index,
+            self.page_count,
+            self.lang);
+        let response = pf.show(ctx, |ui| {
             ui.label("THIS IS USER LABEL!");
             if ui.button("Click me!").clicked() {
                 println!("Clicked from user!");
             }
         });
 
+        if let Some(l) = response.lang { self.lang = l; }
         if response.next_clicked { self.next_page(); }
         if response.prev_clicked { self.prev_page(); }
         if response.quit_clicked { ctx.send_viewport_cmd(egui::ViewportCommand::Close); }
