@@ -1,6 +1,6 @@
 mod page_frame;
 
-use eframe::egui;
+use eframe::egui::{self, Style, Theme};
 
 pub fn hello_egui() {
     // Set window properties here
@@ -32,10 +32,20 @@ struct InstallerGui {
 
 impl InstallerGui {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        // Customize egui here with cc.egui_ctx.set_fonts and cc.egui_ctx.set_visuals.
-        // Restore app state using cc.storage (requires the "persistence" feature).
-        // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
-        // for e.g. egui::PaintCallback.
+        // Set style
+        let style = Style{
+            // Change style here
+            ..Default::default()
+        };
+        cc.egui_ctx.set_style(style);
+
+        // Set theme
+        if let Some(theme) = cc.egui_ctx.system_theme() {
+            cc.egui_ctx.set_theme(theme);
+        }
+        else{
+            cc.egui_ctx.set_theme(Theme::Dark);
+        }
 
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
@@ -55,7 +65,8 @@ impl eframe::App for InstallerGui {
         let pf = page_frame::PageFrame::new(
             self.page_index,
             self.page_count,
-            self.lang);
+            self.lang
+        );
         let response = pf.show(ctx, |ui| {
             ui.label("THIS IS USER LABEL!");
             if ui.button("Click me!").clicked() {
@@ -65,7 +76,7 @@ impl eframe::App for InstallerGui {
 
         if let Some(l) = response.lang { self.lang = l; }
         if response.next_clicked { self.next_page(); }
-        if response.prev_clicked { self.prev_page(); }
+        if response.back_clicked { self.prev_page(); }
         if response.quit_clicked { ctx.send_viewport_cmd(egui::ViewportCommand::Close); }
     }
 }
