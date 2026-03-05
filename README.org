@@ -1,0 +1,7 @@
+#+title: Readme
+
+* About
+[[https://github.com/Clovis1444/csi][CSI]] - Clovis's *simple installer*.
+
+* Attribution
+This program uses icons from [[https://github.com/carbon-design-system/carbon/tree/main/packages/icons][IBM's Carbon icon set]].

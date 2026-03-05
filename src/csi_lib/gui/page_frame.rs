@@ -1,4 +1,4 @@
-use eframe::egui::{self, Align, CentralPanel, Context, Layout, TopBottomPanel, Ui, Image, Button, Vec2};
+use eframe::egui::{self, Align, Button, CentralPanel, Context, Image, Layout, TopBottomPanel, Ui, Vec2};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -106,25 +106,46 @@ impl PageFrame {
         Button::new(text).min_size(Self::CTRL_BUTTON_SIZE)
     }
     fn make_lang_button(ui: &mut Ui, response: &mut PageFrameResponse) {
-        let lang_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/lang_icon32.png"));
-        let lang_icon = Image::new(lang_icon_src).fit_to_exact_size(Self::LANG_BUTTON_SIZE);
+        let lang_icon_src;
+        // TODO(clovis): factor this out into some AssetManager?
+        match ui.ctx().theme() {
+            egui::Theme::Dark => {
+                lang_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/lang64-dark.png"));
+            },
+            egui::Theme::Light => {
+                lang_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/lang64-light.png"));
+            },
+        };
 
+        let lang_icon = Image::new(lang_icon_src).shrink_to_fit().fit_to_exact_size(Self::LANG_BUTTON_SIZE);
+        // Note: Temporarily change padding to make lang button with exact Self::LANG_BUTTON_SIZE size
+        // let original_bp = ui.style().spacing.button_padding;
+        // ui.style_mut().spacing.button_padding = Vec2::new(0.0, 0.0);
         // Lang button
         ui.menu_image_button(lang_icon, |ui| {
             for l in Language::iter() {
                 if ui.button(l.to_string()).clicked() {response.lang = Some(l);}
             }
         });
+
+        // ui.style_mut().spacing.button_padding = original_bp;
     }
     fn make_theme_button(ui: &mut Ui) {
-        let text;
+        let theme_icon_src;
         let new_theme;
         match ui.ctx().theme() {
-            egui::Theme::Dark =>  { text = "Dark"; new_theme = egui::Theme::Light; },
-            egui::Theme::Light => { text = "Light"; new_theme = egui::Theme::Dark; }
+            egui::Theme::Dark =>  {
+                theme_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/theme64-dark.png"));
+                new_theme = egui::Theme::Light;
+            },
+            egui::Theme::Light => {
+                theme_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/theme64-light.png"));
+                new_theme = egui::Theme::Dark;
+            }
         }
+        let theme_icon = Image::new(theme_icon_src).shrink_to_fit().fit_to_exact_size(Self::THEME_BUTTON_SIZE);
 
-        let button = Button::new(text).min_size(Self::THEME_BUTTON_SIZE);
+        let button = Button::image(theme_icon).min_size(Self::THEME_BUTTON_SIZE);
 
         if ui.add(button).clicked() { ui.ctx().set_theme(new_theme); }
     }

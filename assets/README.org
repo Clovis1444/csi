@@ -1,0 +1,10 @@
+#+title: Asset Readme
+
+* Icons Colors
+** Dark theme
+=#B4B4B4=
+** Light theme
+=#3C3C3C=
+
+* Icons size
+=64x64=
