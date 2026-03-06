@@ -65,30 +65,37 @@ impl PageFrame {
         });
 
         TopBottomPanel::bottom("Bottom Panel").show(ctx, |ui| {
-            ui.columns_const(|[col_1, col_2, col_3]| {
-                let col_1_layout = Layout::left_to_right(Align::Center);
-                col_1.with_layout(col_1_layout, |ui| {
-                    // Quit button
-                    let quit_b = Self::ctrl_button("Quit");
-                    response.quit_clicked = ui.add(quit_b).clicked();
-                });
+            let original_item_spacing = ui.style().spacing.item_spacing;
+            ui.style_mut().spacing.item_spacing = Vec2::default();
 
-                col_2.centered_and_justified(|ui| {
-                    // Page number label
-                    ui.label(format!("{}/{}", self.page_index, self.page_count));
-                });
+            // TODO(clovis): fix negative desired size when zooming in
 
-                let col_3_layout = Layout::right_to_left(Align::Center);
-                col_3.with_layout(col_3_layout, |ui| {
-                    // Next button
-                    let next_b = Self::ctrl_button("Next");
-                    response.next_clicked = ui.add_enabled(self.next_enabled, next_b).clicked();
-                    ui.add_space(Self::CTRL_BUTTON_SIZE.y);
-                    // Back button
-                    let back_b = Self::ctrl_button("Back");
-                    response.back_clicked = ui.add_enabled(self.back_enabled, back_b).clicked();
-                });
+            let available_width = ui.available_width();
+            let total_buttons_width = 3.0 * Self::CTRL_BUTTON_SIZE.x;
+            let back_next_spacing = Self::CTRL_BUTTON_SIZE.y;
+            let remaining_space = available_width - total_buttons_width - back_next_spacing;
+
+            let layout = Layout::left_to_right(Align::Center);
+            ui.with_layout(layout, |ui| {
+                // Quit button
+                let quit_b = Self::ctrl_button("Quit");
+                response.quit_clicked = ui.add(quit_b).clicked();
+
+                // Page number label
+                let label = egui::Label::new(format!("{}/{}", self.page_index, self.page_count));
+                ui.add_sized(Vec2::new(remaining_space, ui.available_height()), label);
+
+                // Back button
+                let back_b = Self::ctrl_button("Back");
+                response.back_clicked = ui.add_enabled(self.back_enabled, back_b).clicked();
+
+                ui.add_space(back_next_spacing);
+
+                // Next button
+                let next_b = Self::ctrl_button("Next");
+                response.next_clicked = ui.add_enabled(self.next_enabled, next_b).clicked();
             });
+            ui.style_mut().spacing.item_spacing = original_item_spacing;
         });
 
         CentralPanel::default().show(ctx , |ui| {
