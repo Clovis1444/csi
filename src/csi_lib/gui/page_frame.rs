@@ -1,4 +1,4 @@
-use eframe::egui::{self, Align, Button, CentralPanel, Context, Image, Layout, TopBottomPanel, Ui, Vec2};
+use eframe::egui::{self, Align, Button, CentralPanel, Context, Image, Label, Layout, TopBottomPanel, Ui, Vec2, RichText};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -42,60 +42,62 @@ impl PageFrame {
         let mut response = PageFrameResponse::default();
 
         TopBottomPanel::top("Title Panel").show(ctx, |ui| {
-            ui.columns_const(|[col_1, col_2]| {
-                let col_1_layout = Layout::left_to_right(Align::Center);
-                col_1.with_layout(col_1_layout, |ui| {
-                    // Title heading
-                    ui.heading("Page Title");
-                });
+            ui.style_mut().spacing.item_spacing.x = 0.0;
 
-                let col_2_layout = Layout::right_to_left(Align::Center);
-                col_2.with_layout(col_2_layout, |ui| {
-                    // Theme button
-                    Self::make_theme_button(ui);
+            let lang_theme_spacing = Self::LANG_BUTTON_SIZE.y;
+            let lang_label_spacing = 0.25 * Self::LANG_BUTTON_SIZE.y;
 
-                    ui.add_space(Self::LANG_BUTTON_SIZE.x * 0.5);
+            let layout = Layout::right_to_left(Align::Center);
+            ui.with_layout(layout, |ui| {
+                // Theme button
+                Self::make_theme_button(ui);
 
-                    // Lang button
-                    Self::make_lang_button(ui, &mut response);
-                    // Lang label
-                    ui.label(self.lang.to_string());
-                });
+                ui.add_space(lang_theme_spacing);
+
+                // Lang button
+                Self::make_lang_button(ui, &mut response);
+
+                ui.add_space(lang_label_spacing);
+
+                // Lang label
+                ui.label(self.lang.to_string());
+
+                let title_width = ui.available_width();
+
+                // Title heading
+                let title = Label::new(RichText::new("Page Title Text").heading());
+                ui.add_sized(Vec2::new(title_width, ui.available_height()), title);
             });
         });
 
         TopBottomPanel::bottom("Bottom Panel").show(ctx, |ui| {
-            let original_item_spacing = ui.style().spacing.item_spacing;
-            ui.style_mut().spacing.item_spacing = Vec2::default();
-
+            ui.style_mut().spacing.item_spacing.x = 0.0;
             // TODO(clovis): fix negative desired size when zooming in
 
-            let available_width = ui.available_width();
-            let total_buttons_width = 3.0 * Self::CTRL_BUTTON_SIZE.x;
             let back_next_spacing = Self::CTRL_BUTTON_SIZE.y;
-            let remaining_space = available_width - total_buttons_width - back_next_spacing;
 
-            let layout = Layout::left_to_right(Align::Center);
+            let layout = Layout::right_to_left(Align::Center);
             ui.with_layout(layout, |ui| {
-                // Quit button
-                let quit_b = Self::ctrl_button("Quit");
-                response.quit_clicked = ui.add(quit_b).clicked();
+                // Next button
+                let next_b = Self::ctrl_button("Next");
+                response.next_clicked = ui.add_enabled(self.next_enabled, next_b).clicked();
 
-                // Page number label
-                let label = egui::Label::new(format!("{}/{}", self.page_index, self.page_count));
-                ui.add_sized(Vec2::new(remaining_space, ui.available_height()), label);
+                ui.add_space(back_next_spacing);
 
                 // Back button
                 let back_b = Self::ctrl_button("Back");
                 response.back_clicked = ui.add_enabled(self.back_enabled, back_b).clicked();
 
-                ui.add_space(back_next_spacing);
+                let page_label_width = ui.available_width() - Self::CTRL_BUTTON_SIZE.x;
 
-                // Next button
-                let next_b = Self::ctrl_button("Next");
-                response.next_clicked = ui.add_enabled(self.next_enabled, next_b).clicked();
+                // Page label
+                let page_label = Label::new(format!("{}/{}", self.page_index, self.page_count));
+                ui.add_sized(Vec2::new(page_label_width, Self::CTRL_BUTTON_SIZE.y), page_label);
+
+                // Quit button
+                let quit_b = Self::ctrl_button("Quit");
+                response.quit_clicked = ui.add(quit_b).clicked();
             });
-            ui.style_mut().spacing.item_spacing = original_item_spacing;
         });
 
         CentralPanel::default().show(ctx , |ui| {
@@ -113,42 +115,50 @@ impl PageFrame {
         Button::new(text).min_size(Self::CTRL_BUTTON_SIZE)
     }
     fn make_lang_button(ui: &mut Ui, response: &mut PageFrameResponse) {
-        let lang_icon_src;
-        // TODO(clovis): factor this out into some AssetManager?
-        match ui.ctx().theme() {
-            egui::Theme::Dark => {
-                lang_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/lang64-dark.png"));
-            },
-            egui::Theme::Light => {
-                lang_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/lang64-light.png"));
-            },
-        };
+        ui.scope(|ui| {
+            ui.style_mut().spacing.button_padding = Vec2::default();
 
-        let lang_icon = Image::new(lang_icon_src).shrink_to_fit().fit_to_exact_size(Self::LANG_BUTTON_SIZE);
-        // Lang button
-        ui.menu_image_button(lang_icon, |ui| {
-            for l in Language::iter() {
-                if ui.button(l.to_string()).clicked() {response.lang = Some(l);}
-            }
+            let lang_icon_src;
+            // TODO(clovis): factor this out into some AssetManager?
+            match ui.ctx().theme() {
+                egui::Theme::Dark => {
+                    lang_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/lang64-dark.png"));
+                },
+                egui::Theme::Light => {
+                    lang_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/lang64-light.png"));
+                },
+            };
+
+            let lang_icon = Image::new(lang_icon_src).shrink_to_fit().fit_to_exact_size(Self::LANG_BUTTON_SIZE);
+            // Lang button
+            ui.menu_image_button(lang_icon, |ui| {
+                for l in Language::iter() {
+                    if ui.button(l.to_string()).clicked() { response.lang = Some(l); }
+                }
+            });
         });
     }
     fn make_theme_button(ui: &mut Ui) {
-        let theme_icon_src;
-        let new_theme;
-        match ui.ctx().theme() {
-            egui::Theme::Dark =>  {
-                theme_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/theme64-dark.png"));
-                new_theme = egui::Theme::Light;
-            },
-            egui::Theme::Light => {
-                theme_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/theme64-light.png"));
-                new_theme = egui::Theme::Dark;
+        ui.scope(|ui| {
+            ui.style_mut().spacing.button_padding = Vec2::default();
+
+            let theme_icon_src;
+            let new_theme;
+            match ui.ctx().theme() {
+                egui::Theme::Dark =>  {
+                    theme_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/theme64-dark.png"));
+                    new_theme = egui::Theme::Light;
+                },
+                egui::Theme::Light => {
+                    theme_icon_src = egui::include_image!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/theme64-light.png"));
+                    new_theme = egui::Theme::Dark;
+                }
             }
-        }
-        let theme_icon = Image::new(theme_icon_src).shrink_to_fit().fit_to_exact_size(Self::THEME_BUTTON_SIZE);
+            let theme_icon = Image::new(theme_icon_src).shrink_to_fit().fit_to_exact_size(Self::THEME_BUTTON_SIZE);
 
-        let button = Button::image(theme_icon).min_size(Self::THEME_BUTTON_SIZE);
+            let button = Button::image(theme_icon).min_size(Self::THEME_BUTTON_SIZE);
 
-        if ui.add(button).clicked() { ui.ctx().set_theme(new_theme); }
+            if ui.add(button).clicked() { ui.ctx().set_theme(new_theme); }
+        });
     }
 }
