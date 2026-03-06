@@ -14,7 +14,8 @@ fn main() -> ExitCode {
     // };
     // println!("{installer:#?}");
 
-    csi::gui::hello_egui();
+    let result = csi::gui::InstallerGui::run();
+    println!("Gui exited with result: {:?}", result);
 
     return ExitCode::SUCCESS;
 }

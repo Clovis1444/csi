@@ -118,17 +118,12 @@ impl PageFrame {
         };
 
         let lang_icon = Image::new(lang_icon_src).shrink_to_fit().fit_to_exact_size(Self::LANG_BUTTON_SIZE);
-        // Note: Temporarily change padding to make lang button with exact Self::LANG_BUTTON_SIZE size
-        // let original_bp = ui.style().spacing.button_padding;
-        // ui.style_mut().spacing.button_padding = Vec2::new(0.0, 0.0);
         // Lang button
         ui.menu_image_button(lang_icon, |ui| {
             for l in Language::iter() {
                 if ui.button(l.to_string()).clicked() {response.lang = Some(l);}
             }
         });
-
-        // ui.style_mut().spacing.button_padding = original_bp;
     }
     fn make_theme_button(ui: &mut Ui) {
         let theme_icon_src;
