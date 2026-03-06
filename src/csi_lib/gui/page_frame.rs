@@ -38,6 +38,7 @@ impl PageFrame {
         Self { page_index, page_count, lang, back_enabled, next_enabled }
     }
 
+    // TODO(clovis): add zoom button?
     pub fn show<R>(&self, ctx: &Context, add_contents: impl FnOnce(&mut Ui) -> R) -> PageFrameResponse {
         let mut response = PageFrameResponse::default();
 
@@ -62,7 +63,7 @@ impl PageFrame {
                 // Lang label
                 ui.label(self.lang.to_string());
 
-                let title_width = ui.available_width();
+                let title_width = f32::max(0.0, ui.available_width());
 
                 // Title heading
                 let title = Label::new(RichText::new("Page Title Text").heading());
@@ -72,7 +73,6 @@ impl PageFrame {
 
         TopBottomPanel::bottom("Bottom Panel").show(ctx, |ui| {
             ui.style_mut().spacing.item_spacing.x = 0.0;
-            // TODO(clovis): fix negative desired size when zooming in
 
             let back_next_spacing = Self::CTRL_BUTTON_SIZE.y;
 
@@ -88,7 +88,7 @@ impl PageFrame {
                 let back_b = Self::ctrl_button("Back");
                 response.back_clicked = ui.add_enabled(self.back_enabled, back_b).clicked();
 
-                let page_label_width = ui.available_width() - Self::CTRL_BUTTON_SIZE.x;
+                let page_label_width = f32::max(0.0, ui.available_width() - Self::CTRL_BUTTON_SIZE.x);
 
                 // Page label
                 let page_label = Label::new(format!("{}/{}", self.page_index, self.page_count));
