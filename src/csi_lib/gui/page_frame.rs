@@ -4,8 +4,9 @@ use strum_macros::EnumIter;
 
 #[derive(Debug)]
 pub struct PageFrame{
+    title: String,
     page_index: i32,
-    page_count: i32,
+    pages_count: i32,
     lang: Language,
     back_enabled: bool,
     next_enabled: bool,
@@ -32,10 +33,17 @@ impl PageFrame {
     const LANG_BUTTON_SIZE:  Vec2 = Vec2::new(32.0, 32.0);
     const THEME_BUTTON_SIZE: Vec2 = Vec2::new(32.0, 32.0);
 
-    pub fn new(page_index: i32, page_count: i32, lang: Language) -> Self {
+    pub fn new(title: &str, page_index: i32, page_count: i32, lang: Language) -> Self {
         let back_enabled = page_index > 1;
         let next_enabled = page_index < page_count;
-        Self { page_index, page_count, lang, back_enabled, next_enabled }
+        Self {
+            title: String::from(title),
+            page_index: page_index,
+            pages_count: page_count,
+            lang: lang,
+            back_enabled: back_enabled,
+            next_enabled: next_enabled,
+        }
     }
 
     // TODO(clovis): add zoom button?
@@ -66,7 +74,7 @@ impl PageFrame {
                 let title_width = f32::max(0.0, ui.available_width());
 
                 // Title heading
-                let title = Label::new(RichText::new("Page Title Text").heading());
+                let title = Label::new(RichText::new(self.title.clone()).heading());
                 ui.add_sized(Vec2::new(title_width, ui.available_height()), title);
             });
         });
@@ -91,7 +99,7 @@ impl PageFrame {
                 let page_label_width = f32::max(0.0, ui.available_width() - Self::CTRL_BUTTON_SIZE.x);
 
                 // Page label
-                let page_label = Label::new(format!("{}/{}", self.page_index, self.page_count));
+                let page_label = Label::new(format!("{}/{}", self.page_index, self.pages_count));
                 ui.add_sized(Vec2::new(page_label_width, Self::CTRL_BUTTON_SIZE.y), page_label);
 
                 // Quit button

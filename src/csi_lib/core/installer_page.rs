@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 // TODO(clovis): integrate var_name in the future pages
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub enum InstallerPage {
     Custom(CustomPage),
     Welcome(WelcomePage),
@@ -24,7 +24,7 @@ impl InstallerPage {
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct WelcomePage {
     title: String,
     desc: String,
@@ -44,7 +44,7 @@ impl WelcomePage {
     pub fn set_desc(&mut self, val: String) { self.desc = val }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct LicensePage {
     title: String,
     text: Option<String>,
@@ -95,7 +95,7 @@ impl LicensePage{
 
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct CustomPage {
     title: Option<String>,
     desc: Option<String>,

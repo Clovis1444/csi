@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct InstallerAction {
     #[serde(alias = "type")]
     action_type: InstallerActionType,
@@ -28,7 +28,7 @@ impl InstallerAction {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub enum InstallerActionType {
     Copy,
     Download,

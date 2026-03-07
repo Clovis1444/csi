@@ -1,15 +1,17 @@
 mod page_frame;
 
 use eframe::egui::{self, Style, Theme, Vec2};
+use crate::core::{Installer, InstallerPage};
 
 pub struct InstallerGui {
+    installer: Installer,
+    // Note: 0 based indexing
     page_index: i32,
-    page_count: i32,
     lang: page_frame::Language,
 }
 
 impl InstallerGui {
-    pub fn run() -> Result<(), eframe::Error> {
+    pub fn run(installer: Installer) -> Result<(), eframe::Error> {
         // Set window properties here
         let native_options = eframe::NativeOptions {
             centered: true,
@@ -28,11 +30,11 @@ impl InstallerGui {
         return eframe::run_native(
             "CSI",
             native_options,
-            Box::new(|cc| Ok(Box::new(InstallerGui::new(cc)))),
+            Box::new(|cc| Ok(Box::new(InstallerGui::new(cc, installer)))),
         );
     }
 
-    fn new(cc: &eframe::CreationContext<'_>) -> Self {
+    fn new(cc: &eframe::CreationContext<'_>, installer: Installer) -> Self {
         // Set style
         let style = Style{
             // Change style here
@@ -50,22 +52,42 @@ impl InstallerGui {
 
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
-        Self { page_index: 7, page_count: 13, lang: page_frame::Language::English }
+        Self {
+            installer: installer,
+            page_index: 0,
+            lang: page_frame::Language::English,
+        }
     }
 
     fn next_page(&mut self) {
-        self.page_index = std::cmp::min(self.page_count, self.page_index + 1);
+        self.page_index = std::cmp::max(0, std::cmp::min(self.pages_count() - 1, self.page_index + 1));
     }
     fn prev_page(&mut self) {
-        self.page_index = std::cmp::max(1, self.page_index - 1);
+        self.page_index = std::cmp::max(0, self.page_index - 1);
     }
+
+    fn pages_count(&self) -> i32 { self.installer.pages_count() }
+    fn page(&self) -> Option<&InstallerPage> { self.installer.pages().get(self.page_index as usize) }
 }
 
 impl eframe::App for InstallerGui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // TODO(clovis): refactor InstallerPage
+        let title = match self.page() {
+            Some(page) => {
+                match page {
+                    InstallerPage::Custom(_) => "Custom page",
+                    InstallerPage::Welcome(_) => "Welcome page",
+                    InstallerPage::License(_) => "License page",
+                }
+            },
+            None => "Empty page",
+        };
+
         let pf = page_frame::PageFrame::new(
-            self.page_index,
-            self.page_count,
+            title,
+            self.page_index + 1,
+            self.pages_count(),
             self.lang
         );
         let response = pf.show(ctx, |ui| {

@@ -6,7 +6,7 @@ pub use installer_action::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-#[derive(Deserialize, Serialize, Default, Debug)]
+#[derive(Deserialize, Serialize, Default, Clone, Debug)]
 pub struct Installer {
     general: InstallerGeneral,
     #[serde(alias = "page")]
@@ -20,6 +20,10 @@ pub struct Installer {
     log: bool,
 }
 impl Installer {
+    pub fn pages(&self) -> &Vec<InstallerPage> { &self.pages }
+
+    pub fn pages_count(&self) -> i32 { self.pages.len() as i32 }
+
     pub fn is_valid(&self) -> bool {
         let result = match self.validate() {
             Ok(_) => { true },
@@ -63,7 +67,7 @@ impl Installer {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct InstallerGeneral {
     program_name: String,
     program_desc: String,
