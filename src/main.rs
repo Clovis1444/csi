@@ -6,8 +6,8 @@ mod csi_app;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
-    let settings = csi::settings::Settings::default();
-    let mut app = csi_app::CsiApp::new(settings);
+    let mut settings = csi::settings::Settings::default();
+    let mut app = csi_app::CsiApp::new(&mut settings);
 
     let f_path = "samples/csi_config.toml";
     match app.load_installer(f_path) {

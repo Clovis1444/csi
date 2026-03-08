@@ -6,7 +6,7 @@ pub use installer_action::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-#[derive(Deserialize, Serialize, Default, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Installer {
     general: InstallerGeneral,
     #[serde(alias = "page")]
@@ -16,8 +16,6 @@ pub struct Installer {
     vars: HashMap<String, String>,
     #[serde(alias = "action", default)]
     actions: Vec<InstallerAction>,
-    #[serde(default)]
-    log: bool,
 }
 impl Installer {
     pub fn pages(&self) -> &Vec<InstallerPage> { &self.pages }
@@ -25,9 +23,9 @@ impl Installer {
     pub fn pages_count(&self) -> i32 { self.pages.len() as i32 }
 
     pub fn is_valid(&self) -> bool {
-        return self.validate().is_ok();
+        return self.validate(false).is_ok();
     }
-    pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn validate(&self, log: bool) -> Result<(), Box<dyn std::error::Error>> {
         let mut used_vars: HashSet<String> = HashSet::new();
         // TODO(clovis): do the same thing with pages
         // TODO v2 (clovis): If we know what vars will be used,
@@ -47,8 +45,7 @@ impl Installer {
             if !used_vars.contains(var) { unused_vars.insert(var.clone()); }
         }
 
-        // TODO(clovis): create logging functions in utils.rs
-        if self.log {
+        if log {
             println!("[WARNING] Variables {:?} declared but not used.", unused_vars);
         }
 

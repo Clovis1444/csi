@@ -1,12 +1,12 @@
 use super::core;
 
-pub fn installer_from_file(f_path: &str) -> Result<core::Installer, Box<dyn std::error::Error>> {
+pub fn installer_from_file(f_path: &str, log: bool) -> Result<core::Installer, Box<dyn std::error::Error>> {
     let f_content: String = read_file(f_path)?;
     // let f_toml = f_content.parse::<toml::Table>().unwrap();
 
     let installer = toml::from_str::<core::Installer>(&f_content)?;
 
-    installer.validate()?;
+    installer.validate(log)?;
 
     return Ok(installer);
 }

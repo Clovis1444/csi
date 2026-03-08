@@ -92,7 +92,8 @@ impl eframe::App for InstallerGui {
                 String::from("Empty Page. No text here.")
             };
 
-            ui.label(page_text);
+            let label = egui::Label::new(page_text);
+            ui.add_sized(ui.available_size(), label);
         });
 
         if let Some(l) = response.lang { self.lang = l; }
