@@ -73,15 +73,10 @@ impl InstallerGui {
 impl eframe::App for InstallerGui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // TODO(clovis): refactor InstallerPage
-        let title = match self.page() {
-            Some(page) => {
-                match page {
-                    InstallerPage::Custom(_) => "Custom page",
-                    InstallerPage::Welcome(_) => "Welcome page",
-                    InstallerPage::License(_) => "License page",
-                }
-            },
-            None => "Empty page",
+        let title = if let Some(page) = self.page() {
+            page.title()
+        } else {
+          "Empty Page"
         };
 
         let pf = page_frame::PageFrame::new(
@@ -91,10 +86,13 @@ impl eframe::App for InstallerGui {
             self.lang
         );
         let response = pf.show(ctx, |ui| {
-            ui.label("THIS IS USER LABEL!");
-            if ui.button("Click me!").clicked() {
-                println!("Clicked from user!");
-            }
+            let page_text = if let Some(page) = self.page() {
+                page.text().unwrap_or(String::from("Empty Page. No text here."))
+            } else {
+                String::from("Empty Page. No text here.")
+            };
+
+            ui.label(page_text);
         });
 
         if let Some(l) = response.lang { self.lang = l; }

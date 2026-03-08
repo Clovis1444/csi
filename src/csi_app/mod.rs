@@ -17,11 +17,11 @@ impl CsiApp {
     pub fn load_installer(&mut self, f_path: &str) -> Result<(), Box<dyn std::error::Error>> {
         let installer = csi::parser::installer_from_file(f_path)?;
 
-        if installer.is_valid() {
-            self.installer = Some(installer);
-        } else {
-            return Err("Installer is not valid".into());
+        if let Err(e) = installer.validate() {
+            return Err(e);
         }
+
+        self.installer = Some(installer);
 
         return Ok(());
     }

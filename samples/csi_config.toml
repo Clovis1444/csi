@@ -6,12 +6,15 @@ source_dir = "~/my_program_src/"
 
 
 [[pages]]
-Welcome = { title = "Welcome title", desc = "Welcome to my cool program installer."}
+page_type = "Welcome"
+title = "My Welcome Page"
+text = "Welcome to my cool program installer."
 [[pages]]
-License.title = "Accept license NOW!"
-License.text = "Some boring stuff here..."
-License.file_path = "samples/LICENSE"
-# License.prefer_file = false
+page_type = "License"
+title = "Accept license NOW!"
+text = "Some boring stuff here..."
+file_path = "samples/LICENSE"
+# prefer_file = false
 
 [vars]
 var1 = "some path"

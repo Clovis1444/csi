@@ -25,16 +25,15 @@ impl Installer {
     pub fn pages_count(&self) -> i32 { self.pages.len() as i32 }
 
     pub fn is_valid(&self) -> bool {
-        let result = match self.validate() {
-            Ok(_) => { true },
-            Err(_) => { false },
-        };
-
-        return result;
+        return self.validate().is_ok();
     }
     pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
         let mut used_vars: HashSet<String> = HashSet::new();
         // TODO(clovis): do the same thing with pages
+        // TODO v2 (clovis): If we know what vars will be used,
+        // then there is no need to force user to define vars.
+        // Just define it after Installer creation
+        //
         // Populate used_vars
         for action in &self.actions {
             for var in action.vars() {
@@ -57,10 +56,15 @@ impl Installer {
         // Populate undeclared_vars
         undeclared_vars.retain(|var| { !self.vars.contains_key(var) });
 
-        // Return Error
+        // Return Error if there are any undeclared variables
         if !undeclared_vars.is_empty() {
             let err_str = format!("Error: variables {:?} used but not declared!", undeclared_vars);
             return Err(err_str.into());
+        }
+
+        // Return Error if one of the pages is not valid
+        for page in &self.pages {
+            page.validate()?
         }
 
         return Ok(());
