@@ -1,6 +1,7 @@
 use csi::settings::Settings;
 use csi::core::Installer;
 
+#[derive(Debug)]
 pub struct CsiApp<'a> {
     installer: Option<Installer>,
     settings: &'a mut Settings,

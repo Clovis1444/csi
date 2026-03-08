@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy)]
@@ -6,6 +5,12 @@ pub enum InstallerPageType {
     Custom,
     Welcome,
     License,
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct Var {
+    pub key: String,
+    pub def: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -16,7 +21,7 @@ pub struct InstallerPage {
     file_path: Option<String>,
     #[serde(default = "InstallerPage::default_prefer_file")]
     prefer_file: bool,
-    vars: Option<HashMap<String, String>>,
+    vars: Option<Vec<Var>>,
 }
 
 impl InstallerPage {
@@ -30,6 +35,8 @@ impl InstallerPage {
     pub fn set_file_path(&mut self, file_path: Option<String>) { self.file_path = file_path }
     pub fn prefer_file(&self) -> bool { self.prefer_file }
     pub fn set_prefer_file(&mut self, prefer_file: bool) { self.prefer_file = prefer_file }
+    pub fn vars(&self) -> Option<&Vec<Var>> { self.vars.as_ref() }
+    pub fn set_vars(&mut self, vars: Option<Vec<Var>>) { self.vars = vars }
 
     pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
         match self.page_type {

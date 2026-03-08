@@ -9,6 +9,11 @@ source_dir = "~/my_program_src/"
 page_type = "Welcome"
 title = "My Welcome Page"
 text = "Welcome to my cool program installer."
+vars = [
+     { key = "var1", def = "false" },
+     { key = "var2" },
+]
+
 [[pages]]
 page_type = "License"
 title = "Accept license NOW!"

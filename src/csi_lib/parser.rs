@@ -1,3 +1,4 @@
+// TODO(clovis): Do i really need this module? Consider factor it out into csi::core and utils
 use super::core;
 
 pub fn installer_from_file(f_path: &str, log: bool) -> Result<core::Installer, Box<dyn std::error::Error>> {
