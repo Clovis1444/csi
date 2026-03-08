@@ -2,16 +2,18 @@ mod page_frame;
 
 use eframe::egui::{self, Style, Theme, Vec2};
 use crate::core::{Installer, InstallerPage};
+use crate::settings::Settings;
 
-pub struct InstallerGui {
-    installer: Installer,
+pub struct InstallerGui<'a> {
+    installer: &'a mut Installer,
+    settings: &'a Settings,
     // Note: 0 based indexing
     page_index: i32,
     lang: page_frame::Language,
 }
 
-impl InstallerGui {
-    pub fn run(installer: Installer) -> Result<(), eframe::Error> {
+impl<'a> InstallerGui<'a> {
+    pub fn run(settings: &'a Settings, installer: &'a mut Installer) -> Result<(), eframe::Error> {
         // Set window properties here
         let native_options = eframe::NativeOptions {
             centered: true,
@@ -30,11 +32,11 @@ impl InstallerGui {
         return eframe::run_native(
             "CSI",
             native_options,
-            Box::new(|cc| Ok(Box::new(InstallerGui::new(cc, installer)))),
+            Box::new(|cc| Ok(Box::new(InstallerGui::new(cc, settings, installer)))),
         );
     }
 
-    fn new(cc: &eframe::CreationContext<'_>, installer: Installer) -> Self {
+    fn new(cc: &eframe::CreationContext<'_>, settings: &'a Settings, installer: &'a mut Installer) -> Self {
         // Set style
         let style = Style{
             // Change style here
@@ -54,6 +56,7 @@ impl InstallerGui {
 
         Self {
             installer: installer,
+            settings: settings,
             page_index: 0,
             lang: page_frame::Language::English,
         }
@@ -70,9 +73,8 @@ impl InstallerGui {
     fn page(&self) -> Option<&InstallerPage> { self.installer.pages().get(self.page_index as usize) }
 }
 
-impl eframe::App for InstallerGui {
+impl<'a> eframe::App for InstallerGui<'a> {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // TODO(clovis): refactor InstallerPage
         let title = if let Some(page) = self.page() {
             page.title()
         } else {
@@ -80,6 +82,7 @@ impl eframe::App for InstallerGui {
         };
 
         let pf = page_frame::PageFrame::new(
+            self.settings,
             title,
             self.page_index + 1,
             self.pages_count(),

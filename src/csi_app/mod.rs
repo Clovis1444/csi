@@ -24,9 +24,9 @@ impl<'a> CsiApp<'a> {
     #[allow(dead_code)]
     pub fn unload_installer(&mut self) { self.installer = None; }
 
-    pub fn run_gui(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let result = match self.installer.clone() {
-            Some(i) => csi::gui::InstallerGui::run(i)?,
+    pub fn run_gui(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let result = match &mut self.installer {
+            Some(i) => csi::gui::InstallerGui::run(self.settings, i)?,
             None => { return Err("Installer is not loaded".into()); },
         };
 

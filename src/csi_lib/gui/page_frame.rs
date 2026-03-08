@@ -2,8 +2,11 @@ use eframe::egui::{self, Align, Button, CentralPanel, Context, Image, Label, Lay
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
+use crate::settings::Settings;
+
 #[derive(Debug)]
-pub struct PageFrame{
+pub struct PageFrame<'a> {
+    settings: &'a Settings,
     title: String,
     page_index: i32,
     pages_count: i32,
@@ -28,15 +31,12 @@ pub enum Language {
     Russian,
 }
 
-impl PageFrame {
-    const CTRL_BUTTON_SIZE:  Vec2 = Vec2::new(64.0, 32.0);
-    const LANG_BUTTON_SIZE:  Vec2 = Vec2::new(32.0, 32.0);
-    const THEME_BUTTON_SIZE: Vec2 = Vec2::new(32.0, 32.0);
-
-    pub fn new(title: &str, page_index: i32, page_count: i32, lang: Language) -> Self {
+impl<'a> PageFrame<'a> {
+    pub fn new(settings: &'a Settings,title: &str, page_index: i32, page_count: i32, lang: Language) -> Self {
         let back_enabled = page_index > 1;
         let next_enabled = page_index < page_count;
         Self {
+            settings: settings,
             title: String::from(title),
             page_index: page_index,
             pages_count: page_count,
@@ -53,18 +53,18 @@ impl PageFrame {
         TopBottomPanel::top("Title Panel").show(ctx, |ui| {
             ui.style_mut().spacing.item_spacing.x = 0.0;
 
-            let lang_theme_spacing = Self::LANG_BUTTON_SIZE.y;
-            let lang_label_spacing = 0.25 * Self::LANG_BUTTON_SIZE.y;
+            let lang_theme_spacing = self.settings.gui.lang_button_size.y;
+            let lang_label_spacing = 0.25 * self.settings.gui.lang_button_size.y;
 
             let layout = Layout::right_to_left(Align::Center);
             ui.with_layout(layout, |ui| {
                 // Theme button
-                Self::make_theme_button(ui);
+                self.make_theme_button(ui);
 
                 ui.add_space(lang_theme_spacing);
 
                 // Lang button
-                Self::make_lang_button(ui, &mut response);
+                self.make_lang_button(ui, &mut response);
 
                 ui.add_space(lang_label_spacing);
 
@@ -82,28 +82,28 @@ impl PageFrame {
         TopBottomPanel::bottom("Bottom Panel").show(ctx, |ui| {
             ui.style_mut().spacing.item_spacing.x = 0.0;
 
-            let back_next_spacing = Self::CTRL_BUTTON_SIZE.y;
+            let back_next_spacing = self.settings.gui.ctrl_button_size.y;
 
             let layout = Layout::right_to_left(Align::Center);
             ui.with_layout(layout, |ui| {
                 // Next button
-                let next_b = Self::ctrl_button("Next");
+                let next_b = self.ctrl_button("Next");
                 response.next_clicked = ui.add_enabled(self.next_enabled, next_b).clicked();
 
                 ui.add_space(back_next_spacing);
 
                 // Back button
-                let back_b = Self::ctrl_button("Back");
+                let back_b = self.ctrl_button("Back");
                 response.back_clicked = ui.add_enabled(self.back_enabled, back_b).clicked();
 
-                let page_label_width = f32::max(0.0, ui.available_width() - Self::CTRL_BUTTON_SIZE.x);
+                let page_label_width = f32::max(0.0, ui.available_width() - self.settings.gui.ctrl_button_size.x);
 
                 // Page label
                 let page_label = Label::new(format!("{}/{}", self.page_index, self.pages_count));
-                ui.add_sized(Vec2::new(page_label_width, Self::CTRL_BUTTON_SIZE.y), page_label);
+                ui.add_sized(Vec2::new(page_label_width, self.settings.gui.ctrl_button_size.y), page_label);
 
                 // Quit button
-                let quit_b = Self::ctrl_button("Quit");
+                let quit_b = self.ctrl_button("Quit");
                 response.quit_clicked = ui.add(quit_b).clicked();
             });
         });
@@ -119,10 +119,10 @@ impl PageFrame {
         return response;
     }
 
-    fn ctrl_button(text: &str) -> Button<'_> {
-        Button::new(text).min_size(Self::CTRL_BUTTON_SIZE)
+    fn ctrl_button(&self, text: &str) -> Button<'_> {
+        Button::new(text).min_size(self.settings.gui.ctrl_button_size)
     }
-    fn make_lang_button(ui: &mut Ui, response: &mut PageFrameResponse) {
+    fn make_lang_button(&self, ui: &mut Ui, response: &mut PageFrameResponse) {
         ui.scope(|ui| {
             ui.style_mut().spacing.button_padding = Vec2::default();
 
@@ -137,7 +137,7 @@ impl PageFrame {
                 },
             };
 
-            let lang_icon = Image::new(lang_icon_src).shrink_to_fit().fit_to_exact_size(Self::LANG_BUTTON_SIZE);
+            let lang_icon = Image::new(lang_icon_src).shrink_to_fit().fit_to_exact_size(self.settings.gui.lang_button_size);
             // Lang button
             ui.menu_image_button(lang_icon, |ui| {
                 for l in Language::iter() {
@@ -146,7 +146,7 @@ impl PageFrame {
             });
         });
     }
-    fn make_theme_button(ui: &mut Ui) {
+    fn make_theme_button(&self, ui: &mut Ui) {
         ui.scope(|ui| {
             ui.style_mut().spacing.button_padding = Vec2::default();
 
@@ -162,9 +162,9 @@ impl PageFrame {
                     new_theme = egui::Theme::Dark;
                 }
             }
-            let theme_icon = Image::new(theme_icon_src).shrink_to_fit().fit_to_exact_size(Self::THEME_BUTTON_SIZE);
+            let theme_icon = Image::new(theme_icon_src).shrink_to_fit().fit_to_exact_size(self.settings.gui.theme_button_size);
 
-            let button = Button::image(theme_icon).min_size(Self::THEME_BUTTON_SIZE);
+            let button = Button::image(theme_icon).min_size(self.settings.gui.theme_button_size);
 
             if ui.add(button).clicked() { ui.ctx().set_theme(new_theme); }
         });
