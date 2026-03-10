@@ -1,8 +1,12 @@
 mod page_frame;
+mod page;
 
 use eframe::egui::{self, Style, Theme, Vec2};
+
 use crate::core::{Installer, InstallerPage};
 use crate::settings::Settings;
+
+use page::GuiPage;
 
 pub struct InstallerGui<'a> {
     installer: &'a mut Installer,
@@ -10,6 +14,10 @@ pub struct InstallerGui<'a> {
     // Note: 0 based indexing
     page_index: i32,
     lang: page_frame::Language,
+    allow_next: bool,
+    // TODO(clovis): this will conflict with multiple licenses
+    // TODO(clovis): create responses hash map to resolve this
+    license_accepted: bool,
 }
 
 impl<'a> InstallerGui<'a> {
@@ -59,14 +67,41 @@ impl<'a> InstallerGui<'a> {
             settings: settings,
             page_index: 0,
             lang: page_frame::Language::English,
+            allow_next: false,
+            license_accepted: false,
+        }
+    }
+
+    fn handle_responses(&mut self,
+        ctx: &egui::Context,
+        pf_res: page_frame::PageFrameResponse,
+        p_res: Option<page::PageResponse>,
+    ) {
+        if let Some(l) = pf_res.lang { self.lang = l; }
+        if pf_res.next_clicked { self.next_page(); }
+        if pf_res.back_clicked { self.prev_page(); }
+        if pf_res.quit_clicked { ctx.send_viewport_cmd(egui::ViewportCommand::Close); }
+
+        match p_res {
+            Some(res) => {
+                self.allow_next = res.allow_next;
+                if let Some(l_accepted) = res.license_accepted { self.license_accepted = l_accepted; }
+            },
+            None => { self.allow_next = true; },
         }
     }
 
     fn next_page(&mut self) {
+        let old_i = self.page_index;
         self.page_index = std::cmp::max(0, std::cmp::min(self.pages_count() - 1, self.page_index + 1));
+
+        if old_i != self.page_index { self.allow_next = false; }
     }
     fn prev_page(&mut self) {
+        let old_i = self.page_index;
         self.page_index = std::cmp::max(0, self.page_index - 1);
+
+        if old_i != self.page_index { self.allow_next = false; }
     }
 
     fn pages_count(&self) -> i32 { self.installer.pages_count() }
@@ -86,22 +121,23 @@ impl<'a> eframe::App for InstallerGui<'a> {
             title,
             self.page_index + 1,
             self.pages_count(),
-            self.lang
+            self.lang,
+            self.allow_next,
         );
-        let response = pf.show(ctx, |ui| {
-            let page_text = if let Some(page) = self.page() {
-                page.text().unwrap_or(String::from("Empty Page. No text here."))
-            } else {
-                String::from("Empty Page. No text here.")
-            };
 
-            let label = egui::Label::new(page_text);
-            ui.add_sized(ui.available_size(), label);
+        let mut p_res: Option<page::PageResponse> = None;
+
+        let pf_res = pf.show(ctx, |ui| {
+            if let Some(page) = self.page() {
+                match page.gui_page(ui, self.settings, self.license_accepted) {
+                    Ok(res) => { p_res = Some(res); },
+                    Err(e) => { ui.label(e.to_string()); },
+                }
+            } else {
+                ui.label("Empty Page. No text here.");
+            };
         });
 
-        if let Some(l) = response.lang { self.lang = l; }
-        if response.next_clicked { self.next_page(); }
-        if response.back_clicked { self.prev_page(); }
-        if response.quit_clicked { ctx.send_viewport_cmd(egui::ViewportCommand::Close); }
+        self.handle_responses(ctx, pf_res, p_res);
     }
 }

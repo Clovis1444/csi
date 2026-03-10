@@ -21,6 +21,11 @@ text = "Some boring stuff here..."
 file_path = "samples/LICENSE"
 # prefer_file = false
 
+[[pages]]
+page_type = "Welcome"
+title = "Another page"
+text = "Just a page with some text..."
+
 [vars]
 var1 = "some path"
 var2 = "false"

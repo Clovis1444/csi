@@ -1,4 +1,4 @@
-use eframe::egui::{self, Align, Button, CentralPanel, Context, Image, Label, Layout, TopBottomPanel, Ui, Vec2, RichText};
+use eframe::egui::{self, Align, Button, CentralPanel, Context, Image, Label, Layout, TopBottomPanel, Ui, Vec2, RichText, Frame};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -32,9 +32,9 @@ pub enum Language {
 }
 
 impl<'a> PageFrame<'a> {
-    pub fn new(settings: &'a Settings,title: &str, page_index: i32, page_count: i32, lang: Language) -> Self {
+    pub fn new(settings: &'a Settings,title: &str, page_index: i32, page_count: i32, lang: Language, allow_next: bool) -> Self {
         let back_enabled = page_index > 1;
-        let next_enabled = page_index < page_count;
+        let next_enabled = page_index < page_count && allow_next;
         Self {
             settings: settings,
             title: String::from(title),
@@ -109,11 +109,11 @@ impl<'a> PageFrame<'a> {
         });
 
         CentralPanel::default().show(ctx , |ui| {
-            ui.label("BEFORE USER");
-            // USER STUFF BEGIN
-            add_contents(ui);
-            // USER STUFF END
-            ui.label("AFTER USER");
+            Frame::group(ui.style()).show(ui, |ui| {
+                // USER STUFF BEGIN
+                add_contents(ui);
+                // USER STUFF END
+            });
         });
 
         return response;
