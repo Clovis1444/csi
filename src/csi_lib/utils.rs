@@ -8,6 +8,11 @@ pub fn path_from_str(path: &str) -> Result<PathBuf, Box<dyn Error>> {
     return Ok(path_buf);
 }
 
+pub fn read_file(f_path: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let f_path = std::fs::canonicalize(f_path)?;
+    return Ok(std::fs::read_to_string(&f_path)?);
+}
+
 // pub fn is_file_valid(path: &str) -> bool {
 //     let path_buf = match path_from_str(path){
 //         Ok(val) => { val },

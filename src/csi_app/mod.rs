@@ -16,7 +16,7 @@ impl<'a> CsiApp<'a> {
     }
 
     pub fn load_installer(&mut self, f_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let installer = csi::parser::installer_from_file(f_path, self.settings.log)?;
+        let installer = Installer::from_file(f_path, self.settings.log)?;
 
         self.installer = Some(installer);
 

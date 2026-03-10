@@ -6,6 +6,7 @@ pub use installer_action::*;
 
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use crate::utils;
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Installer {
@@ -19,6 +20,16 @@ pub struct Installer {
     actions: Vec<InstallerAction>,
 }
 impl Installer {
+    pub fn from_file(f_path: &str, log: bool) -> Result<Self, Box<dyn std::error::Error>> {
+        let f_content: String = utils::read_file(f_path)?;
+
+        let installer = toml::from_str::<Self>(&f_content)?;
+
+        installer.validate(log)?;
+
+        return Ok(installer);
+    }
+
     pub fn pages(&self) -> &Vec<InstallerPage> { &self.pages }
 
     pub fn pages_count(&self) -> i32 { self.pages.len() as i32 }
