@@ -10,7 +10,7 @@ pub trait GuiPage {
 impl GuiPage for InstallerPage {
     fn gui_page(&self, ui: &mut Ui, settings: &Settings, last_res: Option<&PageResponse>) -> Result<PageResponse, Box<dyn std::error::Error>> {
         match self.page_type() {
-            // crate::core::InstallerPageType::Welcome => Ok(create_welcome_page(ui, settings, self.text()?)),
+            crate::core::InstallerPageType::Welcome => Ok(create_welcome_page(ui, settings, self.text()?)),
             crate::core::InstallerPageType::License => Ok(create_license_page(ui, settings, self.text()?, last_res)),
             _ => Err("Not yet Implemented!".into()),
         }
@@ -57,9 +57,9 @@ fn create_license_page(ui: &mut Ui, settings: &Settings, text: String, last_res:
     return response;
 }
 
-// fn create_welcome_page(ui: &mut Ui, _settings: &Settings, text: String) -> PageResponse {
-//     let label = Label::new(text);
-//     ui.add_sized(ui.available_size(), label);
+fn create_welcome_page(ui: &mut Ui, _settings: &Settings, text: String) -> PageResponse {
+    let label = Label::new(text);
+    ui.add_sized(ui.available_size(), label);
 
-//     return PageResponse::default();
-// }
+    return PageResponse::default();
+}
