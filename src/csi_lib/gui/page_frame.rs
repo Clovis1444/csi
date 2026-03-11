@@ -109,11 +109,13 @@ impl<'a> PageFrame<'a> {
         });
 
         CentralPanel::default().show(ctx , |ui| {
+            // USER STUFF BEGINS
             Frame::group(ui.style()).show(ui, |ui| {
-                // USER STUFF BEGIN
-                add_contents(ui);
-                // USER STUFF END
+                ui.scope(|ui| {
+                    add_contents(ui);
+                });
             });
+            // USER STUFF ENDS
         });
 
         return response;

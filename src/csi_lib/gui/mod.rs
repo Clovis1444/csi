@@ -1,6 +1,7 @@
 mod page_frame;
 mod page;
 
+use std::collections::HashMap;
 use eframe::egui::{self, Style, Theme, Vec2};
 
 use crate::core::{Installer, InstallerPage};
@@ -15,9 +16,7 @@ pub struct InstallerGui<'a> {
     page_index: i32,
     lang: page_frame::Language,
     allow_next: bool,
-    // TODO(clovis): this will conflict with multiple licenses
-    // TODO(clovis): create responses hash map to resolve this
-    license_accepted: bool,
+    p_responses: HashMap<i32, page::PageResponse>,
 }
 
 impl<'a> InstallerGui<'a> {
@@ -68,7 +67,7 @@ impl<'a> InstallerGui<'a> {
             page_index: 0,
             lang: page_frame::Language::English,
             allow_next: false,
-            license_accepted: false,
+            p_responses: HashMap::new(),
         }
     }
 
@@ -77,18 +76,20 @@ impl<'a> InstallerGui<'a> {
         pf_res: page_frame::PageFrameResponse,
         p_res: Option<page::PageResponse>,
     ) {
+        // Page response handling
+        match p_res {
+            Some(res) => {
+                self.allow_next = res.allow_next;
+                self.p_responses.insert(self.page_index, res);
+            },
+            None => { self.allow_next = true; },
+        }
+
+        // PageFrame response handling
         if let Some(l) = pf_res.lang { self.lang = l; }
         if pf_res.next_clicked { self.next_page(); }
         if pf_res.back_clicked { self.prev_page(); }
         if pf_res.quit_clicked { ctx.send_viewport_cmd(egui::ViewportCommand::Close); }
-
-        match p_res {
-            Some(res) => {
-                self.allow_next = res.allow_next;
-                if let Some(l_accepted) = res.license_accepted { self.license_accepted = l_accepted; }
-            },
-            None => { self.allow_next = true; },
-        }
     }
 
     fn next_page(&mut self) {
@@ -106,6 +107,7 @@ impl<'a> InstallerGui<'a> {
 
     fn pages_count(&self) -> i32 { self.installer.pages_count() }
     fn page(&self) -> Option<&InstallerPage> { self.installer.pages().get(self.page_index as usize) }
+    fn last_page_res(&self) -> Option<&page::PageResponse> { self.p_responses.get(&self.page_index) }
 }
 
 impl<'a> eframe::App for InstallerGui<'a> {
@@ -129,7 +131,7 @@ impl<'a> eframe::App for InstallerGui<'a> {
 
         let pf_res = pf.show(ctx, |ui| {
             if let Some(page) = self.page() {
-                match page.gui_page(ui, self.settings, self.license_accepted) {
+                match page.gui_page(ui, self.settings, self.last_page_res()) {
                     Ok(res) => { p_res = Some(res); },
                     Err(e) => { ui.label(e.to_string()); },
                 }

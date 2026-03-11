@@ -22,6 +22,11 @@ file_path = "samples/LICENSE"
 # prefer_file = false
 
 [[pages]]
+page_type = "License"
+title = "Another license!"
+text = "SECOND LICENSE TETX!!!"
+
+[[pages]]
 page_type = "Welcome"
 title = "Another page"
 text = "Just a page with some text..."
