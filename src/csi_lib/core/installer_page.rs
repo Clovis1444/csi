@@ -2,15 +2,31 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy)]
 pub enum InstallerPageType {
-    Custom,
     Welcome,
     License,
+    Components,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Var {
     pub key: String,
     pub def: Option<String>,
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct InstallComponent {
+    pub name: String,
+    pub desc: String,
+    // TODO(clovis): handle same var names
+    pub var: String,
+    #[serde(default = "InstallComponent::default_checked")]
+    pub checked: bool,
+    #[serde(default = "InstallComponent::default_enabled")]
+    pub enabled: bool,
+}
+impl InstallComponent {
+    pub fn default_checked() -> bool { true }
+    pub fn default_enabled() -> bool { true }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -22,6 +38,7 @@ pub struct InstallerPage {
     #[serde(default = "InstallerPage::default_prefer_file")]
     prefer_file: bool,
     vars: Option<Vec<Var>>,
+    comps: Option<Vec<InstallComponent>>,
 }
 
 impl InstallerPage {
@@ -37,15 +54,21 @@ impl InstallerPage {
     pub fn set_prefer_file(&mut self, prefer_file: bool) { self.prefer_file = prefer_file }
     pub fn vars(&self) -> Option<&Vec<Var>> { self.vars.as_ref() }
     pub fn set_vars(&mut self, vars: Option<Vec<Var>>) { self.vars = vars }
+    pub fn opts(&self) -> Option<&Vec<InstallComponent>> { self.comps.as_ref() }
+    pub fn set_opts(&mut self, opts: Option<Vec<InstallComponent>>) { self.comps = opts }
 
     pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
         match self.page_type {
-            InstallerPageType::Custom => todo!(),
-            InstallerPageType::Welcome => Ok(()),
-            t @ InstallerPageType::License => {
+            t @ (InstallerPageType::Welcome | InstallerPageType::License) => {
                 match self.text() {
                     Ok(_) => Ok(()),
                     Err(e) => Err(format!("InstallerPage::{t:?}: {e}").into()),
+                }
+            },
+            t @ InstallerPageType::Components => {
+                match self.comps.is_some() {
+                    true => Ok(()),
+                    false => Err(format!("InstallerPage::{t:?}: comps should be populated").into()),
                 }
             },
             // Handle new PageTypes here

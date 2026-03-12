@@ -15,6 +15,16 @@ vars = [
 ]
 
 [[pages]]
+page_type = "Components"
+title = "Select components"
+text = "Select compotents that you want to install."
+comps = [
+     { var = "opt1", name = "Essential component", desc = "This component will be installed in any case.", enabled = false },
+     { var = "opt2", name = "Optional component(checked)", desc = "This is a cool optional component. It is recommended to install it." },
+     { var = "opt3", name = "Optional component(unchecked)", desc = "Some optional stuff.", checked = false },
+]
+
+[[pages]]
 page_type = "License"
 title = "Accept license NOW!"
 text = "Some boring stuff here..."
