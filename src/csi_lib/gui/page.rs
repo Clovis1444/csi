@@ -65,10 +65,11 @@ fn create_license_page(ui: &mut Ui, settings: &Settings, text: String, last_res:
     return response;
 }
 
-// TODO(clovis): fix text overflow using ScrollArea
 fn create_welcome_page(ui: &mut Ui, _settings: &Settings, text: String) -> PageResponse {
-    let label = Label::new(text);
-    ui.add_sized(ui.available_size(), label);
+    ScrollArea::vertical().show(ui, |ui| {
+        let label = Label::new(text);
+        ui.add_sized(ui.available_size(), label);
+    });
 
     return PageResponse::default();
 }
