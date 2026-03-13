@@ -1,4 +1,3 @@
-# log = true
 [general]
 program_name = "CSI"
 program_desc = "This is the description of my cool program!"
@@ -6,38 +5,34 @@ source_dir = "~/my_program_src/"
 
 
 [[pages]]
-page_type = "Welcome"
+type = "Welcome"
 title = "My Welcome Page"
 text = "Welcome to my cool program installer."
-vars = [
-     { key = "var1", def = "false" },
-     { key = "var2" },
-]
 
 [[pages]]
-page_type = "Components"
+type = "Components"
 title = "Select components"
 text = "Select compotents that you want to install."
-comps = [
+components = [
      { var = "opt1", name = "Essential component", desc = "This component will be installed in any case.", enabled = false },
      { var = "opt2", name = "Optional component(checked)", desc = "This is a cool optional component. It is recommended to install it." },
      { var = "opt3", name = "Optional component(unchecked)", desc = "Some optional stuff.", checked = false },
 ]
 
 [[pages]]
-page_type = "License"
+type = "License"
 title = "Accept license NOW!"
 text = "Some boring stuff here..."
 file_path = "samples/LICENSE"
 # prefer_file = false
 
 [[pages]]
-page_type = "License"
+type = "License"
 title = "Another license!"
 text = "SECOND LICENSE TETX!!!"
 
 [[pages]]
-page_type = "Welcome"
+type = "Welcome"
 title = "Another page"
 text = "Just a page with some text..."
 

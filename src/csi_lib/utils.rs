@@ -8,25 +8,13 @@ pub fn path_from_str(path: &str) -> Result<PathBuf, Box<dyn Error>> {
     return Ok(path_buf);
 }
 
-pub fn read_file(f_path: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let f_path = std::fs::canonicalize(f_path)?;
-    return Ok(std::fs::read_to_string(&f_path)?);
+pub fn read_file(f_path: &str) -> Result<String, Box<dyn Error>> {
+    let f_path = match path_from_str(f_path){
+        Ok(v) => v,
+        Err(e) => { return Err(format!("{:?}: {}", f_path, e).into()); },
+    };
+    match std::fs::read_to_string(&f_path) {
+        Ok(v) => Ok(v),
+        Err(e) => Err(format!("{:?}: {}", f_path, e).into()),
+    }
 }
-
-// pub fn is_file_valid(path: &str) -> bool {
-//     let path_buf = match path_from_str(path){
-//         Ok(val) => { val },
-//         Err(_) => { return false; },
-//     };
-
-//     return path_buf.is_file();
-// }
-
-// pub fn is_dir_valid(path: &str) -> bool {
-//     let path_buf = match path_from_str(path){
-//         Ok(val) => { val },
-//         Err(_) => { return false; },
-//     };
-
-//     return path_buf.is_dir();
-// }

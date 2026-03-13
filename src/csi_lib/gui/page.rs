@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use eframe::egui::{Checkbox, Frame, Label, ScrollArea, Ui};
 
-use crate::core::{InstallerPage, InstallerPageType, InstallComponent};
+use crate::core::{InstallerPage, InstallerPageText, InstallComponent};
 use crate::settings::Settings;
 
 pub trait GuiPage {
@@ -11,11 +11,11 @@ pub trait GuiPage {
 
 impl GuiPage for InstallerPage {
     fn gui_page(&self, ui: &mut Ui, settings: &Settings, last_res: Option<&PageResponse>) -> Result<PageResponse, Box<dyn std::error::Error>> {
-        match self.page_type() {
-            InstallerPageType::Welcome => Ok(create_welcome_page(ui, settings, self.text()?)),
-            InstallerPageType::License => Ok(create_license_page(ui, settings, self.text()?, last_res)),
-            InstallerPageType::Components => {
-                Ok(create_components_page(ui, settings, self.text().ok(), self.opts().ok_or("No opts found")?, last_res))
+        match self {
+            InstallerPage::Welcome(v) => Ok(create_welcome_page(ui, settings, v.get_text()?)),
+            InstallerPage::License(v) => Ok(create_license_page(ui, settings, v.get_text()?, last_res)),
+            InstallerPage::Components(v) => {
+                Ok(create_components_page(ui, settings, v.get_text().ok(), v.components(), last_res))
             },
             #[allow(unreachable_patterns)]
             _ => Err("Not yet Implemented!".into()),
@@ -23,6 +23,7 @@ impl GuiPage for InstallerPage {
     }
 }
 
+// TODO(clovis): refactor this into enum
 #[derive(Clone, Debug)]
 pub struct PageResponse {
     pub allow_next: bool,
@@ -64,6 +65,7 @@ fn create_license_page(ui: &mut Ui, settings: &Settings, text: String, last_res:
     return response;
 }
 
+// TODO(clovis): fix text overflow using ScrollArea
 fn create_welcome_page(ui: &mut Ui, _settings: &Settings, text: String) -> PageResponse {
     let label = Label::new(text);
     ui.add_sized(ui.available_size(), label);
@@ -134,7 +136,6 @@ fn create_components_page(ui: &mut Ui, settings: &Settings, text: Option<String>
                 });
             });
         });
-
     });
 
     return response;
