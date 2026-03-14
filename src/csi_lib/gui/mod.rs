@@ -79,8 +79,15 @@ impl<'a> InstallerGui<'a> {
         // Page response handling
         match p_res {
             Some(res) => {
-                self.allow_next = res.allow_next;
+                self.allow_next = res.allow_next();
                 self.p_responses.insert(self.page_index, res);
+
+                // TODO(clovis): handle respone here
+                // match res {
+                //     page::PageResponse::Welcome => todo!(),
+                //     page::PageResponse::License(v) => todo!(),
+                //     page::PageResponse::Components(v) => todo!(),
+                // }
             },
             None => { self.allow_next = true; },
         }

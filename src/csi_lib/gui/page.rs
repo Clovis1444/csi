@@ -11,38 +11,68 @@ pub trait GuiPage {
 
 impl GuiPage for InstallerPage {
     fn gui_page(&self, ui: &mut Ui, settings: &Settings, last_res: Option<&PageResponse>) -> Result<PageResponse, Box<dyn std::error::Error>> {
+        // Note: use Welcome variant as fallback
+        let res = last_res.unwrap_or(&PageResponse::Welcome);
+
         match self {
-            InstallerPage::Welcome(v) => Ok(create_welcome_page(ui, settings, v.get_text()?)),
-            InstallerPage::License(v) => Ok(create_license_page(ui, settings, v.get_text()?, last_res)),
-            InstallerPage::Components(v) => {
-                Ok(create_components_page(ui, settings, v.get_text().ok(), v.components(), last_res))
-            },
+            InstallerPage::Welcome(v) =>
+                Ok(create_welcome_page(ui, settings, v.get_text()?)),
+            InstallerPage::License(v) =>
+                Ok(create_license_page(ui, settings, v.get_text()?, res.license_or_default())),
+            InstallerPage::Components(v) =>
+                Ok(create_components_page(ui, settings, v.get_text().ok(), v.components(), res.components_or_default())),
             #[allow(unreachable_patterns)]
             _ => Err("Not yet Implemented!".into()),
         }
     }
 }
 
-// TODO(clovis): refactor this into enum
 #[derive(Clone, Debug)]
-pub struct PageResponse {
-    pub allow_next: bool,
-    pub license_accepted: Option<bool>,
-    pub vars: Option<HashMap<String, String>>,
+pub enum PageResponse {
+    Welcome,
+    License(LicenseResponse),
+    Components(ComponentsResponse),
 }
-impl Default for PageResponse {
-    fn default() -> Self {
-        Self {
-            allow_next: true,
-            license_accepted: None,
-            vars: None,
+impl PageResponse {
+    pub fn allow_next(&self) -> bool {
+        match self {
+            PageResponse::Welcome | PageResponse::Components(_) => true,
+            PageResponse::License(r) => r.allow_next,
         }
+    }
+
+    pub fn license_or_default(&self) -> LicenseResponse {
+        if let Self::License(v) = self { v.clone() }
+        else { LicenseResponse::default() }
+    }
+    pub fn components_or_default(&self) -> ComponentsResponse {
+        if let Self::Components(v) = self { v.clone() }
+        else { ComponentsResponse::default() }
     }
 }
 
-fn create_license_page(ui: &mut Ui, settings: &Settings, text: String, last_res: Option<&PageResponse>) -> PageResponse {
-    let mut response = last_res.cloned().unwrap_or_default();
+#[derive(Clone, Debug, Default)]
+pub struct LicenseResponse {
+    pub allow_next: bool,
+    pub license_accepted: bool,
+}
+#[derive(Clone, Debug, Default)]
+pub struct ComponentsResponse {
+    pub vars: HashMap<String, String>,
+}
 
+////////////////////////////////////////////////////////////////////////////////
+fn create_welcome_page(ui: &mut Ui, _settings: &Settings, text: String) -> PageResponse {
+    ScrollArea::vertical().show(ui, |ui| {
+        let label = Label::new(text);
+        ui.add_sized(ui.available_size(), label);
+    });
+
+    return PageResponse::Welcome;
+}
+
+// Accepts last response
+fn create_license_page(ui: &mut Ui, settings: &Settings, text: String, mut res: LicenseResponse) -> PageResponse {
     ui.vertical_centered(|ui| {
         Frame::group(ui.style()).show(ui, |ui| {
             let sa_height = ui.available_height() - settings.gui.ctrl_button_size.y - ui.style().spacing.item_spacing.y;
@@ -54,29 +84,17 @@ fn create_license_page(ui: &mut Ui, settings: &Settings, text: String, last_res:
             });
         });
 
-        let mut checkbox_buf = response.license_accepted.unwrap_or(false);
-        let checkbox = Checkbox::new(&mut checkbox_buf, "Accept");
+        let checkbox = Checkbox::new(&mut res.license_accepted, "Accept");
         ui.add_sized(settings.gui.ctrl_button_size, checkbox);
 
-        response.license_accepted = Some(checkbox_buf);
-        response.allow_next = checkbox_buf;
+        res.allow_next = res.license_accepted;
     });
 
-    return response;
+    return PageResponse::License(res);
 }
 
-fn create_welcome_page(ui: &mut Ui, _settings: &Settings, text: String) -> PageResponse {
-    ScrollArea::vertical().show(ui, |ui| {
-        let label = Label::new(text);
-        ui.add_sized(ui.available_size(), label);
-    });
-
-    return PageResponse::default();
-}
-
-fn create_components_page(ui: &mut Ui, settings: &Settings, text: Option<String>, comps: &Vec<InstallComponent>, last_res: Option<&PageResponse>) -> PageResponse {
-    let mut response = last_res.cloned().unwrap_or_default();
-
+// Accepts last response
+fn create_components_page(ui: &mut Ui, settings: &Settings, text: Option<String>, comps: &Vec<InstallComponent>, mut res: ComponentsResponse) -> PageResponse {
     ui.vertical_centered(|ui| {
         if let Some(t) = text {
             ui.add_space(0.5 * settings.gui.ctrl_button_size.y);
@@ -96,10 +114,8 @@ fn create_components_page(ui: &mut Ui, settings: &Settings, text: Option<String>
                     ui.heading("Components:");
 
                     let mut cb_bufs: HashMap<String, bool> = HashMap::new();
-                    if let Some(vars) = &response.vars {
-                        for (key, val) in vars {
-                            if let Ok(v) = val.parse::<bool>() { cb_bufs.insert(key.to_string(), v); }
-                        }
+                    for (key, val) in &res.vars {
+                        if let Ok(v) = val.parse::<bool>() { cb_bufs.insert(key.to_string(), v); }
                     }
 
                     for comp in comps {
@@ -112,7 +128,7 @@ fn create_components_page(ui: &mut Ui, settings: &Settings, text: Option<String>
                     }
 
                     let string_map: HashMap<String, String> = cb_bufs.into_iter().map(|(k, v)| (k, v.to_string()) ).collect();
-                    response.vars = Some(string_map);
+                    res.vars = string_map;
 
                     ui.add_space(ui.available_height());
                 });
@@ -139,5 +155,6 @@ fn create_components_page(ui: &mut Ui, settings: &Settings, text: Option<String>
         });
     });
 
-    return response;
+    return PageResponse::Components(res);
 }
+////////////////////////////////////////////////////////////////////////////////
