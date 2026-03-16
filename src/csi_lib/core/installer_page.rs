@@ -24,9 +24,9 @@ impl InstallerPage {
             InstallerPage::Welcome(v) => &v.title,
             InstallerPage::License(v) => &v.title,
             InstallerPage::Components(v) => &v.title,
-            InstallerPage::Preinstall => todo!(),
-            InstallerPage::Installation => todo!(),
-            InstallerPage::Postinstall => todo!(),
+            InstallerPage::Preinstall => "Preinstall overview",
+            InstallerPage::Installation => "Installing...",
+            InstallerPage::Postinstall => "Installation finished",
         }
     }
 

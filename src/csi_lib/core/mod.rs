@@ -23,9 +23,14 @@ impl Installer {
     pub fn from_file(f_path: &str, log: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let f_content: String = utils::read_file(f_path)?;
 
-        let installer = toml::from_str::<Self>(&f_content)?;
+        let mut installer = toml::from_str::<Self>(&f_content)?;
 
         installer.validate(log)?;
+
+        // Add technical pages at the end of self.pages
+        installer.pages.push(InstallerPage::Preinstall);
+        installer.pages.push(InstallerPage::Installation);
+        installer.pages.push(InstallerPage::Postinstall);
 
         return Ok(installer);
     }
