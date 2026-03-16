@@ -32,6 +32,13 @@ pub enum InstallerPage {
     Welcome(WelcomePage),
     License(LicensePage),
     Components(ComponentsPage),
+    // Create new pages here
+    #[serde(skip)]
+    Preinstall,
+    #[serde(skip)]
+    Installation,
+    #[serde(skip)]
+    Postinstall,
 }
 impl InstallerPage {
     pub fn title(&self) -> &str {
@@ -39,6 +46,9 @@ impl InstallerPage {
             InstallerPage::Welcome(v) => &v.title,
             InstallerPage::License(v) => &v.title,
             InstallerPage::Components(v) => &v.title,
+            InstallerPage::Preinstall => todo!(),
+            InstallerPage::Installation => todo!(),
+            InstallerPage::Postinstall => todo!(),
         }
     }
 
@@ -76,7 +86,6 @@ pub trait InstallerPageText {
     fn get_file_text(&self) -> Result<String, Box<dyn Error>> {
         let path = self.file_path().ok_or("No `file_path` provided")?;
         return utils::read_file(path);
-        // return Ok(std::fs::read_to_string(path)?);
     }
     fn get_prefer_file(&self) -> bool {
         self.prefer_file().unwrap_or(self.default_prefer_file())
