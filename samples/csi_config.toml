@@ -4,11 +4,11 @@ program_desc = "This is the description of my cool program!"
 source_dir = "~/my_program_src/"
 
 
+
 [[pages]]
 type = "Welcome"
 title = "My Welcome Page"
 text = "Welcome to my cool program installer."
-
 [[pages]]
 type = "Components"
 title = "Select components"
@@ -18,23 +18,22 @@ components = [
      { var = "opt2", name = "Optional component(checked)", desc = "This is a cool optional component. It is recommended to install it." },
      { var = "opt3", name = "Optional component(unchecked)", desc = "Some optional stuff.", checked = false },
 ]
-
 [[pages]]
 type = "License"
 title = "Accept license NOW!"
 text = "Some boring stuff here..."
 file_path = "samples/LICENSE"
 # prefer_file = false
-
 [[pages]]
 type = "License"
 title = "Another license!"
 text = "SECOND LICENSE TETX!!!"
-
 [[pages]]
 type = "Welcome"
 title = "Another page"
 text = "Just a page with some text..."
+
+
 
 [vars]
 var1 = "some path"
@@ -42,6 +41,8 @@ var2 = "false"
 unused_var = "1"
 cond1 = "false"
 cond2 = "true"
+
+
 
 [[action]]
 type = "Copy"
