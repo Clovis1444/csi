@@ -17,6 +17,7 @@ pub struct InstallerGui<'a> {
     lang: page_frame::Language,
     allow_next: bool,
     p_responses: HashMap<i32, page::PageResponse>,
+    vars: HashMap<String, String>,
 }
 
 impl<'a> InstallerGui<'a> {
@@ -68,6 +69,7 @@ impl<'a> InstallerGui<'a> {
             lang: page_frame::Language::English,
             allow_next: false,
             p_responses: HashMap::new(),
+            vars: HashMap::new(),
         }
     }
 
@@ -79,15 +81,20 @@ impl<'a> InstallerGui<'a> {
         // Page response handling
         match p_res {
             Some(res) => {
+                // Handle allow_next response
                 self.allow_next = res.allow_next();
-                self.p_responses.insert(self.page_index, res);
 
-                // TODO(clovis): handle respone here
-                // match res {
-                //     page::PageResponse::Welcome => todo!(),
-                //     page::PageResponse::License(v) => todo!(),
-                //     page::PageResponse::Components(v) => todo!(),
-                // }
+                // Handle vars response
+                use page::PageResponse;
+                match &res {
+                    PageResponse::Components(v) => {
+                        self.vars.extend(v.vars.iter().map(|(key, val)| { (key.clone(), val.clone()) }));
+                    },
+                    PageResponse::Empty | PageResponse::License(_) => (),
+                }
+
+                // Handle response cache
+                self.p_responses.insert(self.page_index, res);
             },
             None => { self.allow_next = true; },
         }
@@ -138,7 +145,7 @@ impl<'a> eframe::App for InstallerGui<'a> {
 
         let pf_res = pf.show(ctx, |ui| {
             if let Some(page) = self.page() {
-                match page.gui_page(ui, self.settings, self.last_page_res()) {
+                match page.gui_page(ui, self.settings, self.last_page_res(), Some(self.installer.actions()), &self.vars) {
                     Ok(res) => { p_res = Some(res); },
                     Err(e) => { ui.label(e.to_string()); },
                 }

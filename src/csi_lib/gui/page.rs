@@ -2,17 +2,17 @@ use std::collections::HashMap;
 
 use eframe::egui::{Checkbox, Frame, Label, ScrollArea, Ui};
 
-use crate::core::{InstallerPage, InstallerPageText, InstallComponent};
+use crate::core::{InstallerPage, InstallerPageText, InstallerAction, InstallComponent};
 use crate::settings::Settings;
 
 pub trait GuiPage {
-    fn gui_page(&self, ui: &mut Ui, settings: &Settings, last_res: Option<&PageResponse>) -> Result<PageResponse, Box<dyn std::error::Error>>;
+    // TODO(clovis): too many params. Needs refactoring
+    fn gui_page(&self, ui: &mut Ui, settings: &Settings, last_res: Option<&PageResponse>, actions: Option<&Vec<InstallerAction>>, vars: &HashMap<String, String> ) -> Result<PageResponse, Box<dyn std::error::Error>>;
 }
 
 impl GuiPage for InstallerPage {
-    fn gui_page(&self, ui: &mut Ui, settings: &Settings, last_res: Option<&PageResponse>) -> Result<PageResponse, Box<dyn std::error::Error>> {
-        // Note: use Welcome variant as fallback
-        let res = last_res.unwrap_or(&PageResponse::Welcome);
+    fn gui_page(&self, ui: &mut Ui, settings: &Settings, last_res: Option<&PageResponse>, actions: Option<&Vec<InstallerAction>>, vars: &HashMap<String, String> ) -> Result<PageResponse, Box<dyn std::error::Error>> {
+        let res = last_res.unwrap_or(&PageResponse::Empty);
 
         match self {
             InstallerPage::Welcome(v) =>
@@ -21,6 +21,8 @@ impl GuiPage for InstallerPage {
                 Ok(create_license_page(ui, settings, v.get_text()?, res.license_or_default())),
             InstallerPage::Components(v) =>
                 Ok(create_components_page(ui, settings, v.get_text().ok(), v.components(), res.components_or_default())),
+            InstallerPage::Preinstall =>
+                Ok(create_preinstall_page(ui, actions, vars)),
             #[allow(unreachable_patterns)]
             _ => Err("Not yet Implemented!".into()),
         }
@@ -29,14 +31,14 @@ impl GuiPage for InstallerPage {
 
 #[derive(Clone, Debug)]
 pub enum PageResponse {
-    Welcome,
+    Empty,
     License(LicenseResponse),
     Components(ComponentsResponse),
 }
 impl PageResponse {
     pub fn allow_next(&self) -> bool {
         match self {
-            PageResponse::Welcome | PageResponse::Components(_) => true,
+            PageResponse::Empty | PageResponse::Components(_) => true,
             PageResponse::License(r) => r.allow_next,
         }
     }
@@ -68,7 +70,7 @@ fn create_welcome_page(ui: &mut Ui, _settings: &Settings, text: String) -> PageR
         ui.add_sized(ui.available_size(), label);
     });
 
-    return PageResponse::Welcome;
+    return PageResponse::Empty;
 }
 
 // Accepts last response
@@ -156,5 +158,30 @@ fn create_components_page(ui: &mut Ui, settings: &Settings, text: Option<String>
     });
 
     return PageResponse::Components(res);
+}
+
+fn create_preinstall_page(ui: &mut Ui, actions: Option<&Vec<InstallerAction>>, vars: &HashMap<String, String>) -> PageResponse {
+    ui.columns_const(|[c1, c2]|{
+        c1.vertical(|ui| {
+            ui.heading("Actions:");
+            match actions {
+                Some(v) => {
+                    ui.label(format!("{:#?}", v));
+                },
+                None => {
+                    ui.label("No actions provided");
+                },
+            }
+        });
+
+        c2.vertical(|ui| {
+            ui.heading("Vars:");
+            ui.label(format!("{:#?}", vars));
+        });
+    });
+
+    ui.add_space(ui.available_height());
+
+    return PageResponse::Empty;
 }
 ////////////////////////////////////////////////////////////////////////////////

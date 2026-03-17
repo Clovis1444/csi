@@ -35,6 +35,8 @@ impl Installer {
         return Ok(installer);
     }
 
+    pub fn actions(&self) -> &Vec<InstallerAction> { &self.actions }
+
     pub fn pages(&self) -> &Vec<InstallerPage> { &self.pages }
 
     pub fn pages_count(&self) -> i32 { self.pages.len() as i32 }
