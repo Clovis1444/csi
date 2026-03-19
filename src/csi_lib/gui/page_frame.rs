@@ -112,6 +112,8 @@ impl<'a> PageFrame<'a> {
             // USER STUFF BEGINS
             Frame::group(ui.style()).show(ui, |ui| {
                 ui.scope(|ui| {
+                    ui.set_width(ui.available_width());
+                    ui.set_height(ui.available_height());
                     add_contents(ui);
                 });
             });

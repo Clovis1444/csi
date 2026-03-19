@@ -46,10 +46,10 @@ cond2 = "true"
 
 [[action]]
 type = "Copy"
-var_source = "var1"
+var_input = "var1"
 output_path = "~/.config/"
 [[action]]
 type = "Download"
-var_source = "var2"
+var_input = "var2"
 var_conds = [ "cond1", "cond2" ]
 output_path = "~/.local/share/csi/"

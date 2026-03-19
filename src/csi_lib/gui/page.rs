@@ -161,26 +161,22 @@ fn create_components_page(ui: &mut Ui, settings: &Settings, text: Option<String>
 }
 
 fn create_preinstall_page(ui: &mut Ui, actions: Option<&Vec<InstallerAction>>, vars: &HashMap<String, String>) -> PageResponse {
-    ui.columns_const(|[c1, c2]|{
-        c1.vertical(|ui| {
-            ui.heading("Actions:");
-            match actions {
-                Some(v) => {
-                    ui.label(format!("{:#?}", v));
-                },
-                None => {
-                    ui.label("No actions provided");
-                },
+    ScrollArea::vertical().show(ui, |ui| {
+        if let Some(acts) = actions {
+            println!("{vars:?}");
+            for a in acts {
+                let heading_str = a.action_type().to_string();
+                ui.heading(heading_str.clone());
+
+                let input = vars.get(a.v_input()).map_or("???", |v| { v.as_str() });
+                let desc_str = format!("{} from {} into {}.", heading_str, input, a.output_path());
+
+                ui.label(desc_str);
             }
-        });
-
-        c2.vertical(|ui| {
-            ui.heading("Vars:");
-            ui.label(format!("{:#?}", vars));
-        });
+        } else {
+            ui.label("Nothing will be installed.");
+        }
     });
-
-    ui.add_space(ui.available_height());
 
     return PageResponse::Empty;
 }
