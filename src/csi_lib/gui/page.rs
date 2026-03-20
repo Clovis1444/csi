@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use eframe::egui::{Checkbox, Frame, Label, ScrollArea, Ui};
+use eframe::egui::{Checkbox, Frame, Label, ScrollArea, Ui, RichText, TextStyle, Color32, text::LayoutJob, FontSelection, Align, CollapsingHeader};
 
 use crate::core::{InstallerPage, InstallerPageText, InstallerAction, InstallComponent};
 use crate::settings::Settings;
@@ -22,7 +22,7 @@ impl GuiPage for InstallerPage {
             InstallerPage::Components(v) =>
                 Ok(create_components_page(ui, settings, v.get_text().ok(), v.components(), res.components_or_default())),
             InstallerPage::Preinstall =>
-                Ok(create_preinstall_page(ui, actions, vars)),
+                Ok(create_preinstall_page(ui, settings, actions, vars)),
             #[allow(unreachable_patterns)]
             _ => Err("Not yet Implemented!".into()),
         }
@@ -160,21 +160,41 @@ fn create_components_page(ui: &mut Ui, settings: &Settings, text: Option<String>
     return PageResponse::Components(res);
 }
 
-fn create_preinstall_page(ui: &mut Ui, actions: Option<&Vec<InstallerAction>>, vars: &HashMap<String, String>) -> PageResponse {
+fn create_preinstall_page(ui: &mut Ui, settings: &Settings, actions: Option<&Vec<InstallerAction>>, vars: &HashMap<String, String>) -> PageResponse {
     ScrollArea::vertical().show(ui, |ui| {
+        ui.heading("The following actions will be performed by the installer:");
+        ui.add_space(0.5 * settings.gui.ctrl_button_size.y);
+
         if let Some(acts) = actions {
-            println!("{vars:?}");
-            for a in acts {
-                let heading_str = a.action_type().to_string();
-                ui.heading(heading_str.clone());
+            for (i, a) in acts.iter().enumerate() {
+                let a_heading_str = a.action_type().to_string();
+                let a_heading = RichText::new(a_heading_str.clone()).text_style(TextStyle::Button);
 
-                let input = vars.get(a.v_input()).map_or("???", |v| { v.as_str() });
-                let desc_str = format!("{} from {} into {}.", heading_str, input, a.output_path());
+                CollapsingHeader::new(a_heading).id_salt(format!("{}{}", a_heading_str.clone(), i)).show(ui, |ui| {
+                    let mut a_desc = LayoutJob::default();
 
-                ui.label(desc_str);
+                    let input_rtext = match vars.get(a.v_input()) {
+                        Some(v) => RichText::new(v.as_str()).code(),
+                        None => RichText::new("???").code().color(Color32::RED),
+                    };
+
+                    let a_desc_texts: Vec<RichText> = vec![
+                        RichText::new(a_heading_str),
+                        RichText::new(" from "),
+                        input_rtext,
+                        RichText::new(" into "),
+                        RichText::new(a.output_path()).code(),
+                        RichText::new("."),
+                    ];
+                    for t in a_desc_texts {
+                        t.append_to(&mut a_desc, ui.style(), FontSelection::Default, Align::Center);
+                    }
+
+                    ui.label(a_desc);
+                });
             }
         } else {
-            ui.label("Nothing will be installed.");
+            ui.label("No actions will be performed by the installer.");
         }
     });
 
